@@ -367,14 +367,11 @@ class QuoteHandler:
                 "code":500
             }
 
-    async def get_quote(self, body: dict) -> dict:
+    async def get_quote(self,pickup_city : str,destination_city : str) -> dict:
         """
         Retrieve an active quote based on input criteria.
         """
         try:
-            pickup_city = body.get("PickupCity")
-            destination_city = body.get("DestinationCity")
-
             with DatabaseConnection(connection_string=self.db_connection_string) as session:
                 quote = session.query(TransportQuotation).filter(
                     and_(

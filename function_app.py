@@ -14,7 +14,7 @@ async def ping(req: func.HttpRequest) -> func.HttpResponse:
     logger.info('Ping request received.')
     return func.HttpResponse("Service is up", status_code=200)
 
-@app.route(route="v1/lead-and-pricing", methods=["POST"])
+@app.route(route="v1/leads", methods=["POST"])
 async def lead_and_pricing(req: func.HttpRequest) -> func.HttpResponse:
     logger.info(f"Request received from {req.url}")
         
@@ -38,6 +38,7 @@ async def store_quote_in_sql(req: func.HttpRequest) -> func.HttpResponse:
     response = await Quote.store_sql_quote(body)
     return func.HttpResponse(json.dumps(body), status_code=200)
 
+
 @app.route(route="v1/update-quotes", methods=["POST"])
 async def update_quotes_in_sql(req: func.HttpRequest) -> func.HttpResponse:
     logger.info(f"Request received from {req.url}")
@@ -46,9 +47,10 @@ async def update_quotes_in_sql(req: func.HttpRequest) -> func.HttpResponse:
     response = await Quote.update_sql_quote(body)
     return func.HttpResponse(json.dumps(body), status_code=200)
 
-@app.route(route="v1/get-quote", methods=["POST"])
+
+@app.route(route="v1/get-quote", methods=["GET"])
 async def get_quote_from_sql(req: func.HttpRequest) -> func.HttpResponse:
-    body = req.get_json()
-    logger.info(f"body : {body}")
-    response = await Quote.get_quote(body)
+    pickupcity = req.params.get("pickupcity")
+    destinationcity = req.params.get("destinationcity")
+    response = await Quote.get_quote(pickupcity,destinationcity)
     return func.HttpResponse(json.dumps(response), status_code=200)
