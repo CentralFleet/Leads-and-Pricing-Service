@@ -73,9 +73,8 @@ def get_header(token):
 
     return headers
 
-
 def extract_tax_province(province_address):
-    province_address = province_address.upper()  # Convert to lowercase for flexibility
+    province_address = province_address.upper().strip()  # Convert to uppercase and remove leading/trailing spaces
     province_map = {
         "AB": "Alberta",
         "BC": "British Columbia",
@@ -91,20 +90,20 @@ def extract_tax_province(province_address):
         "NU": "Nunavut",
         "YT": "Yukon"
     }
-    # First check for full province name (in case it's already present in the address)
-    for code, abbreviation in province_map.items():
-        if abbreviation.upper() in province_address:
-            return abbreviation.capitalize()  # Return the full name as a proper noun (capitalized)
 
-    # Then check for province abbreviation (2-letter code)
-    match = re.search(r"\b([A-Z]{2})\b", province_address)  # Regex looks for 2-letter province code
-    
+    # Check for full province name
+    for code, full_name in province_map.items():
+        if full_name.upper() in province_address:
+            return full_name  # Return the full name properly
+
+    # Improved regex: Allow spaces after comma before province code
+    match = re.search(r",\s*([A-Z]{2})\b", province_address)  # Handles extra spaces after comma
+
     if match:
         province_abbreviation = match.group(1)
-        tax_province = province_map.get(province_abbreviation, "Unknown Province")
-        return tax_province.capitalize()  # Return the province name corresponding to the abbreviation
-    else:
-        return "Unknown Province"
+        return province_map.get(province_abbreviation, "Unknown Province")
+
+    return "Unknown Province"
 
 def normalize_text(text):
     if isinstance(text, str):

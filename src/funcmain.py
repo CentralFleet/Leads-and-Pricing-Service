@@ -50,26 +50,27 @@ class LeadHandler:
         try:
             token = TOKEN_INSTANCE.get_access_token()
             deal_id = body.get("deal_id", "")
-            order_id = body.get("OrderID", "")
-            logger.info(f"Adding Potential Carriers for {deal_id}")
+            order_id = body.get("order_id", "")
+            pickupcity = body.get("pickup_city", "")
+            dropoffcity = body.get("dropoff_city", "")
+            pickup_province = body.get("pickup_province", "")
+            dropoff_province = body.get("dropoff_province", "")
+            pickup_location = body.get("pickup_loc", "")
+            dropoff_location = body.get("dropoff_loc", "")
 
-            # Initialize response
-            collective_response = {}
+            logger.info(f"Adding Potential Carriers for {deal_id}")
 
             # Handle database operations
             with DatabaseConnection(connection_string=os.getenv("SQL_CONN_STR")) as session:
                 logger.info("Database connection established")
-                # Extract pickup and dropoff locations
-                pickup_location = body.get('pickuploc', 'n/a')
-                dropoff_location = body.get('dropoffloc', 'n/a')
-                leads, pickup_city, destination_city = self.recom_model.recommend_carriers(
-                        CARRIER_DATA, pickup_location, dropoff_location
+                leads= self.recom_model.recommend_carriers(
+                        CARRIER_DATA, pickupcity, dropoffcity, pickup_province, dropoff_province
                     )
                 carrier_response =  self._create_n_attach_carrier_in_crm(
                     session, token,leads, deal_id
                 )
                 quote_response = self._check_and_create_quotes_in_crm(
-                    session, token, pickup_city, destination_city, pickup_location, dropoff_location, order_id, deal_id
+                    session, token, pickupcity, dropoffcity, pickup_location, dropoff_location, order_id, deal_id
                 )
 
                 return {
@@ -213,8 +214,12 @@ class QuoteHandler:
         """
         try:
             token = TOKEN_INSTANCE.get_access_token()
-            pickup_city, destination_city, tax = self._process_quote_data(body)
-
+            pickup_city = body.get("Pickup_City", "")
+            destination_city = body.get("Dropoff_City", "")
+            tax_Province = body.get("Tax_Province", "")
+            
+            tax = self._fetch_tax_details(tax_Province)
+        
             with DatabaseConnection(connection_string=self.db_connection_string) as session:
                 if self._quote_exists(session, body, pickup_city, destination_city):
                     return self._response("failed", "Quote Already Exists", 500)
@@ -229,31 +234,18 @@ class QuoteHandler:
                 }] },id=body.get("QuotationRequestID","-"),token=token)
 
                 slack_msg = f"""💼📜 New Quote Added in Database! \n *Details* \n - Carrier Name: `{ body.get("CarrierName")}` \n - Pickup City: `{pickup_city}` \n - Destination City: `{destination_city}` \n - Est. Amount: `{body.get("Estimated_Amount", "-")}` \n - Est. Pickup Time: `{body.get("EstimatedPickupTime", "-")}` \n - Est. Dropoff Time: `{body.get("EstimatedDropoffTime", "-")}`"""
-                # send_message_to_channel(os.getenv("BOT_TOKEN"),os.getenv("QUOTE_CHANNEL_ID"),slack_msg)
+                send_message_to_channel(os.getenv("BOT_TOKEN"),os.getenv("QUOTE_CHANNEL_ID"),slack_msg)
             
                 return {"status":"success","message":"quote is successfully addded!","status":200}
         except Exception as e:
             logger.error(f"Quote Creation Error: {e}")
+            send_message_to_channel
             return  {"status":"failed","message":"error adding quote in sql","status":500}
 
-    # Helper Methods
-    def _process_quote_data(self, body):
-        """Extract and validate quote data."""
-        temp_df = CARRIER_DATA[
-            CARRIER_DATA['Pickup City'].str.lower().isin(body.get("PickupLocation", "-").lower().replace(",", '').split()) &
-            CARRIER_DATA['Destination City'].str.lower().isin(body.get("DropoffLocation", "-").lower().replace(",", '').split())
-        ]
-
-        pickup_city = temp_df['Pickup City'].iloc[0]
-        destination_city = temp_df['Destination City'].iloc[0]
-        tax = self._fetch_tax_details(body.get("PickupLocation", "-"))
-
-        return pickup_city, destination_city, tax
-
-    def _fetch_tax_details(self, location):
+    def _fetch_tax_details(self, tax_province):
         """Fetch tax details based on location."""
         with DatabaseConnection(connection_string=self.db_connection_string) as session:
-            return session.query(TaxDataBase).filter(TaxDataBase.province == extract_tax_province(location)).first()
+            return session.query(TaxDataBase).filter(TaxDataBase.province == tax_province).first()
 
     def _quote_exists(self, session, body, pickup_city, destination_city):
         """Check if a similar quote already exists."""

@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+from utils.helpers import *
 class CarrierRecommendationModel:
 
     _instance = None 
@@ -65,18 +65,21 @@ class CarrierRecommendationModel:
             return text.lower().strip().replace("é", "e")
         return text
 
-    def recommend_carriers(self, carrierT, pickup_city, destination_city):
+    def recommend_carriers(self, carrierT: pd.DataFrame, pickup_city : str, destination_city : str,pickup_province : str, dropoff_province :str):
         try:
             carrierT[["Pickup City", "Destination City"]] = carrierT[["Pickup City", "Destination City"]].fillna('')
 
-            recommended_carriers = carrierT[carrierT['Pickup City'].str.lower().isin(pickup_city.lower().replace(",", '').split()) &
-                                            carrierT['Destination City'].str.lower().isin(destination_city.lower().replace(",", '').split())]
+            recommended_carriers = carrierT[(carrierT['Pickup City'].str.lower().str.strip() == pickup_city.lower().strip()) &
+                                            (carrierT['Destination City'].str.lower().str.strip() == destination_city.lower().strip())]
 
-            if recommended_carriers.empty:
-                raise ValueError("No carriers found for the specified locations.")
-
-            pickup_city = recommended_carriers['Pickup City'].iloc[0]
-            destination_city = recommended_carriers['Destination City'].iloc[0]
+            if recommended_carriers.empty: ## if carrier found based on ctiy
+                ## try province
+                recommended_carriers = carrierT[
+                    (carrierT['Pickup State/Province'].str.lower().str.strip() == pickup_province.lower().strip()) &
+                    (carrierT['Destination State/Province'].str.lower().str.strip() == dropoff_province.lower().strip())
+                ]
+                if recommended_carriers.empty:
+                    raise ValueError("No carriers found for the specified locations.")
 
             recommended_carriers['Transport Eff. Score'] = recommended_carriers.apply(
                 lambda row: self._transport_eff_m(row['Avg. Delivery Day'],
@@ -111,7 +114,7 @@ class CarrierRecommendationModel:
                 self.logger.error(f"Lead Score Error: {e}")
 
             self.logger.info(recommended_carriers['Carrier Name'])
-            return recommended_carriers, pickup_city, destination_city
+            return recommended_carriers
 
         except Exception as e:
             self.logger.error(f"Recommendation Error: {e}")
