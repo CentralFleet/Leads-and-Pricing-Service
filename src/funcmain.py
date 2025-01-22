@@ -84,7 +84,9 @@ class LeadHandler:
         except Exception as e:
             logger.error(f"Main function error: {e}")
             return {
-                "error": str(e)
+                "status":"failed",
+                "error": str(e),
+                "code":500
             }
 
 
@@ -189,6 +191,7 @@ class LeadHandler:
             return {
                 "status": "success",
                 "message": "Quotes created successfully",
+                "code":200
             }
         
         else:
@@ -196,6 +199,7 @@ class LeadHandler:
             return {
                 "status": "failed",
                 "message": "No matching quotes found.",
+                "code":500
             }
 
 
@@ -236,11 +240,11 @@ class QuoteHandler:
                 slack_msg = f"""💼📜 New Quote Added in Database! \n *Details* \n - Carrier Name: `{ body.get("CarrierName")}` \n - Pickup City: `{pickup_city}` \n - Destination City: `{destination_city}` \n - Est. Amount: `{body.get("Estimated_Amount", "-")}` \n - Est. Pickup Time: `{body.get("EstimatedPickupTime", "-")}` \n - Est. Dropoff Time: `{body.get("EstimatedDropoffTime", "-")}`"""
                 send_message_to_channel(os.getenv("BOT_TOKEN"),os.getenv("QUOTE_CHANNEL_ID"),slack_msg)
             
-                return {"status":"success","message":"quote is successfully addded!","status":200}
+                return {"status":"success","message":"quote is successfully addded!","code":200}
         except Exception as e:
             logger.error(f"Quote Creation Error: {e}")
             send_message_to_channel
-            return  {"status":"failed","message":"error adding quote in sql","status":500}
+            return  {"status":"failed","message":"error adding quote in sql","code":500}
 
     def _fetch_tax_details(self, tax_province):
         """Fetch tax details based on location."""
