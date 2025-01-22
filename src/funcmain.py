@@ -243,7 +243,7 @@ class QuoteHandler:
                 return {"status":"success","message":"quote is successfully addded!","code":200}
         except Exception as e:
             logger.error(f"Quote Creation Error: {e}")
-            send_message_to_channel
+            send_message_to_channel(os.getenv("BOT_TOKEN"),os.getenv("QUOTE_CHANNEL_ID"),f" \n *Details* \n - Carrier Name: `{ body.get("CarrierName")}` \n - Pickup City: `{pickup_city}` \n - Destination City: `{destination_city}` \n Error adding quote in sql: {e}")
             return  {"status":"failed","message":"error adding quote in sql","code":500}
 
     def _fetch_tax_details(self, tax_province):
