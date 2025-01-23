@@ -75,10 +75,32 @@ Retrieve an active quote based on the pickup and destination cities.
 
 **Request Parameters:**
 
-pickupcity - The city where the pickup will occur.
-destinationcity - The city where the dropoff will occur.
+ - pickupcity - The city where the pickup will occur.
+ - destinationcity - The city where the dropoff will occur.
 
+**Response:**
 
+```json
+{
+    "status": "success",
+    "message": "quote retrieved successfully",
+    "code": 200,
+    "data": {
+        "CarrierName": "NETWORK LOGISTICS AND TRANSPORTATION GROUP INC",
+        "Estimated_Amount": "200",
+        "EstimatedPickupTime": "2 - 4 Business Days",
+        "EstimatedDropoffTime": "2 - 4 Business Days",
+        "PickupCity": "Oakville",
+        "DestinationCity": "Ottawa",
+        "TaxRate": 13.0,
+        "TaxName": "ON HST",
+        "TaxAmount": 39.0,
+        "TotalAmount": 339.0,
+        "Additional": 0.0,
+        "Surcharge": 0.0
+    }
+}
+```
 ## 🛠️ Contributing Guide  
 
 Thank you for considering contributing to this project! Follow these steps to get started:  
