@@ -313,6 +313,8 @@ class QuoteHandler:
             "TaxName": quote.TaxName,
             "TaxAmount": quote.TaxAmount,
             "TotalAmount": quote.TotalAmount,
+            "Additional": quote.Additional,
+            "Surcharge": quote.Surcharge
         }
 
     async def update_sql_quote(self, body: dict) -> dict:
