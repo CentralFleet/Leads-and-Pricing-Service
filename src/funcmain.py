@@ -183,11 +183,10 @@ class LeadHandler:
             payload = {"data":batch_quote}
             batch_quote_response = ZOHO_API.create_record(moduleName="Transport_Offers",data=payload,token=token)
             logger.info(f"{batch_quote_response.json()}")
-            ZOHO_API.update_record(moduleName="Deals",id=deal_id,data={"data":{
+            ZOHO_API.update_record(moduleName="Deals",id=deal_id,data={"data":[{
                 "Stage": "Send Quote to Customer",
                 "Order_Status": "Quote Ready"
-            }},token=token)
-
+            }]},token=token)
             return {
                 "status": "success",
                 "message": "Quotes created successfully",
