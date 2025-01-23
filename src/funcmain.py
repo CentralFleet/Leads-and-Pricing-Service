@@ -383,13 +383,15 @@ class QuoteHandler:
                 if not quote:
                     return {
                         "status":"not found",
-                        "message":"quote is not avaiable"
+                        "message":"quote is not avaiable",
+                        "code":404
                     }
 
                 return {
                     "status":"success",
                     "message":"quote retrieved successfully",
-                    "code":200
+                    "code":200,
+                    "data":self._format_quote(quote)
                 }
         except Exception as e:
             logger.error(f"Retrieval Error: {e}")
