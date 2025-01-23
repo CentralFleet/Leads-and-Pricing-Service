@@ -226,7 +226,7 @@ class QuoteHandler:
         
             with DatabaseConnection(connection_string=self.db_connection_string) as session:
                 if self._quote_exists(session, body, pickup_city, destination_city):
-                    return self._response("failed", "Quote Already Exists", 500)
+                    return {"status": "failed", "message": "Quote already exists", "code": 500}
                 try:
                     self._deactivate_existing_quotes(session, pickup_city, destination_city, body.get("CarrierName"))
                 except Exception as e:
