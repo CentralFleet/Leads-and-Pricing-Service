@@ -156,9 +156,9 @@ class CarrierRecommendationModel:
             except Exception as e:
                 self.logger.error(f"Lead Score Error: {e}")
 
+
             self.logger.info(recommended_carriers[['Carrier Name','CScore']])
-            return recommended_carriers[:14] 
-        
+            return recommended_carriers[:14].sort_values(by='CScore', ascending=True)
 
         except Exception as e:
             self.logger.error(f"Recommendation Error: {e}")
