@@ -91,7 +91,7 @@ class CarrierRecommendationModel:
                 (carrierT['Pickup City'] == self._normalize_text(pickup_city)) &
                 (carrierT['Destination City'] == self._normalize_text(destination_city))
             ]
-            city_level_carriers['matching_score'] = 5  # High score for exact city match
+            city_level_carriers['matching_score'] = 10  # High score for exact city match
             recommended_carriers = pd.concat([recommended_carriers, city_level_carriers], ignore_index=True)
 
             # Exclude carriers already matched in the city-level or partial city-level matches
