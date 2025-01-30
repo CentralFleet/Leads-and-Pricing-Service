@@ -72,7 +72,7 @@ class LeadHandler:
                 )
 
                 carrier_response =  self._create_n_attach_carrier_in_crm(
-                    session, token, leads, deal_id, quote_response['existing_quotes']
+                    session, token, leads, deal_id, quote_response['existing_quotes'], pickup_location, dropoff_location
                 )
 
 
@@ -93,7 +93,7 @@ class LeadHandler:
             }
 
 
-    def _create_n_attach_carrier_in_crm(self, session, token, leads, deal_id, existing_quotes):
+    def _create_n_attach_carrier_in_crm(self, session, token, leads, deal_id, existing_quotes, pickup_location, dropoff_location):
         """
         Process carrier recommendations and update the CRM.
         """
@@ -117,6 +117,8 @@ class LeadHandler:
                             "Carrier_Score": row['Lead Score'], # assing score
                             "DealID": deal_id,
                             "Progress_Status": "Quote Received" if carrier_name in preprocess_quotes else "To Be Contacted",
+                            "PickupLocation": pickup_location,
+                            "DropoffLocation": dropoff_location
                         }
                         data.append(lead_data)
                         logger.info(f"data {lead_data}")
