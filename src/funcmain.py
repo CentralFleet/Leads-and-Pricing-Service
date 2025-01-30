@@ -66,12 +66,15 @@ class LeadHandler:
                 leads= self.recom_model.recommend_carriers(
                         CARRIER_DATA, pickupcity, dropoffcity, pickup_province, dropoff_province
                     )
-                carrier_response =  self._create_n_attach_carrier_in_crm(
-                    session, token,leads, deal_id
-                )
+                
                 quote_response = self._check_and_create_quotes_in_crm(
                     session, token, pickupcity, dropoffcity, pickup_location, dropoff_location, order_id, deal_id
                 )
+
+                carrier_response =  self._create_n_attach_carrier_in_crm(
+                    session, token, leads, deal_id, quote_response['existing_quotes']
+                )
+
 
                 return {
                     "status": "success",
@@ -90,17 +93,16 @@ class LeadHandler:
             }
 
 
-    def _create_n_attach_carrier_in_crm(self, session, token, leads, deal_id):
+    def _create_n_attach_carrier_in_crm(self, session, token, leads, deal_id, existing_quotes):
         """
         Process carrier recommendations and update the CRM.
         """
         try:
-     
             if not leads.empty:
                 logger.info(f"Processing recommendations: {leads['Carrier Name'].tolist()}")
                 leads["Carrier Name"] = leads["Carrier Name"].apply(standardize_name)
                 carrier_names = leads["Carrier Name"].tolist()
-
+                preprocess_quotes = list(map(standardize_name, existing_quotes))
                 carriers = session.query(Vendor).filter(Vendor.VendorName.in_(carrier_names)).all()
                 carriers_with_ids = {c.VendorName: c.ZohoRecordID for c in carriers}
 
@@ -114,7 +116,7 @@ class LeadHandler:
                             "Name": Lead_Name,
                             "Carrier_Score": row['Lead Score'], # assing score
                             "DealID": deal_id,
-                            "Progress_Status": "To Be Contacted",
+                            "Progress_Status": "Quote Received" if carrier_name in preprocess_quotes else "To Be Contacted",
                         }
                         data.append(lead_data)
                         logger.info(f"data {lead_data}")
@@ -157,14 +159,16 @@ class LeadHandler:
             )
         ).all()
 
+        existing_quotes = list()
         if matching_quotes:
             batch_quote = []
 
             for quote in matching_quotes:
                 logger.info(f"Quote Details: {[quote.CarrierID, quote.Estimated_Amount, quote.EstimatedPickupTime, quote.EstimatedDropoffTime, quote.CreateDate]}")
                 logger.info(f"pcikup city {pickup_city}, dropoff {destination_city}")
+                existing_quotes.append(quote.CarrierName)
                 data = {
-                    "Name": f"{order_id}-{quote.CarrierName}",
+                    "Name": f"{quote.CarrierName}-{order_id}",
                     "VendorID": quote.CarrierID,
                     "Pickup_Location": pickup_location,
                     "Dropoff_Location": dropoff_location,
@@ -182,7 +186,10 @@ class LeadHandler:
 
             payload = {"data":batch_quote}
             batch_quote_response = ZOHO_API.create_record(moduleName="Transport_Offers",data=payload,token=token)
+        
             logger.info(f"{batch_quote_response.json()}")
+
+
             ZOHO_API.update_record(moduleName="Deals",id=deal_id,data={"data":[{
                 "Stage": "Send Quote to Customer",
                 "Order_Status": "Quote Ready"
@@ -190,6 +197,7 @@ class LeadHandler:
             return {
                 "status": "success",
                 "message": "Quotes created successfully",
+                "existing_quotes": existing_quotes,
                 "code":200
             }
         
@@ -198,6 +206,7 @@ class LeadHandler:
             return {
                 "status": "failed",
                 "message": "No matching quotes found.",
+                "existing_quotes": existing_quotes,
                 "code":500
             }
 
