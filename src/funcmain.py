@@ -334,7 +334,9 @@ class QuoteHandler:
             "TaxAmount": quote.TaxAmount,
             "TotalAmount": quote.TotalAmount,
             "Additional": quote.Additional,
-            "Surcharge": quote.Surcharge
+            "Surcharge": quote.Surcharge,
+            "ServiceFee": 0,
+            "CustomerPrice_excl_tax": quote.CustomerPrice_excl_tax
         }
 
     async def update_sql_quote(self, body: dict) -> dict:
