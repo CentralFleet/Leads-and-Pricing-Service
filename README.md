@@ -97,7 +97,9 @@ Retrieve an active quote based on the pickup and destination cities.
         "TaxAmount": 39.0,
         "TotalAmount": 339.0,
         "Additional": 0.0,
-        "Surcharge": 0.0
+        "Surcharge": 0.0,
+        "ServiceFee": 0,
+        "CustomerPrice_excl_tax": 727.0
     }
 }
 ```
