@@ -179,7 +179,6 @@ class LeadHandler:
                 logger.info(f"pcikup city {pickup_city}, dropoff {destination_city}")
                 existing_quotes[quote.CarrierName] = quote
                 data = {
-                    "CreateDate":quote.CreateDate.strftime("%Y-%m-%d"),
                     "Name": f"{quote.CarrierName}-{order_id}",
                     "VendorID": quote.CarrierID,
                     "Pickup_Location": pickup_location,
@@ -203,8 +202,8 @@ class LeadHandler:
 
 
             ZOHO_API.update_record(moduleName="Deals",id=deal_id,data={"data":[{
-                "Stage": "Send Quote to Customer",
-                "Order_Status": "Quote Ready"
+                "Stage": "Confirm Quote Details",
+                "Order_Status": "Quote Pending"
             }]},token=token)
             return {
                 "status": "success",
