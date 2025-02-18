@@ -179,6 +179,7 @@ class LeadHandler:
                 logger.info(f"pcikup city {pickup_city}, dropoff {destination_city}")
                 existing_quotes[quote.CarrierName] = quote
                 data = {
+                    "CreateDate":quote.CreateDate.strftime("%Y-%m-%d"),
                     "Name": f"{quote.CarrierName}-{order_id}",
                     "VendorID": quote.CarrierID,
                     "Pickup_Location": pickup_location,
