@@ -43,10 +43,11 @@ async def test_add_carrier_and_quotes(mock_db, mock_zoho, mock_token, lead_handl
     response = await lead_handler.add_carrier_and_quotes(req.get_json())
     assert response["status"] == "success"
 @pytest.mark.asyncio
+@patch("src.funcmain.ZOHO_API.update_record", return_value=MagicMock(status_code=200, json=lambda: {"status": "success"}))
 @patch("src.funcmain.send_message_to_channel", return_value=None)
 @patch("src.funcmain.DatabaseConnection")
 @patch("src.funcmain.TOKEN_INSTANCE.get_access_token", return_value="fake_token")
-async def test_store_sql_quote(mock_token, mock_db, mock_slack, quote_handler, mock_request):
+async def test_store_sql_quote(mock_token, mock_db, mock_slack,mock_zoho_update, quote_handler, mock_request):
     mock_session = mock_db.return_value.__enter__.return_value
     mock_session.query.return_value.filter_by.return_value.first.return_value = None
     mock_session.query.return_value.filter.return_value.count.return_value = 0
